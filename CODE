@@ -1,0 +1,92 @@
+// -------- PIN DEFINITIONS --------
+int irPin = 2;          // IR obstacle sensor
+int opticPin = 3;       // Optical break beam sensor
+
+int clk = 4;            // Rotary encoder CLK
+int dt  = 5;            // Rotary encoder DT
+int sw  = 6;            // Rotary encoder button
+
+int greenLED = 9;       // All clear
+int redLED   = 10;      // IR detected
+int blueLED  = 11;      // Optical blocked
+
+// -------- VARIABLES --------
+int lastCLK;
+int sensitivityDelay = 2000; // milliseconds (default = 2 seconds)
+
+// -------- SETUP --------
+void setup() {
+  pinMode(irPin, INPUT);
+  pinMode(opticPin, INPUT);
+
+  pinMode(clk, INPUT);
+  pinMode(dt, INPUT);
+  pinMode(sw, INPUT_PULLUP);
+
+  pinMode(greenLED, OUTPUT);
+  pinMode(redLED, OUTPUT);
+  pinMode(blueLED, OUTPUT);
+
+  Serial.begin(9600);
+  lastCLK = digitalRead(clk);
+}
+
+// -------- LOOP --------
+void loop() {
+
+  // ---- READ SENSORS ----
+  int irState = digitalRead(irPin);        // 0 = obstacle
+  int opticState = digitalRead(opticPin);  // 1 = blocked
+
+  // ---- ALL CLEAR ----
+  if (irState == HIGH && opticState == LOW) {
+    digitalWrite(greenLED, HIGH);
+    digitalWrite(redLED, LOW);
+    digitalWrite(blueLED, LOW);
+    Serial.println("STATUS: ALL CLEAR");
+  }
+
+  // ---- IR OBSTACLE ----
+  if (irState == LOW) {
+    digitalWrite(greenLED, LOW);
+    digitalWrite(redLED, HIGH);
+    digitalWrite(blueLED, LOW);
+    Serial.println("IR SENSOR: OBSTACLE DETECTED");
+    delay(sensitivityDelay);
+  }
+
+  // ---- OPTICAL BLOCKED ----
+  if (opticState == HIGH) {
+    digitalWrite(greenLED, LOW);
+    digitalWrite(redLED, LOW);
+    digitalWrite(blueLED, HIGH);
+    Serial.println("OPTICAL SENSOR: BEAM BLOCKED");
+    delay(sensitivityDelay);
+  }
+
+  // ---- ROTARY ENCODER ----
+  int currentCLK = digitalRead(clk);
+  if (currentCLK != lastCLK) {
+    if (digitalRead(dt) != currentCLK) {
+      // Clockwise → increase sensitivity
+      sensitivityDelay -= 200;
+      if (sensitivityDelay < 500) sensitivityDelay = 500;
+      Serial.print("Rotary: Clockwise | Sensitivity Increased | Delay = ");
+      Serial.println(sensitivityDelay);
+    } else {
+      // Anti-clockwise → decrease sensitivity
+      sensitivityDelay += 200;
+      if (sensitivityDelay > 3000) sensitivityDelay = 3000;
+      Serial.print("Rotary: Anti-clockwise | Sensitivity Decreased | Delay = ");
+      Serial.println(sensitivityDelay);
+    }
+  }
+  lastCLK = currentCLK;
+
+  // ---- BUTTON RESET ----
+  if (digitalRead(sw) == LOW) {
+    sensitivityDelay = 2000;
+    Serial.println("Button Pressed: Sensitivity Reset");
+    delay(1000);
+  }
+}
