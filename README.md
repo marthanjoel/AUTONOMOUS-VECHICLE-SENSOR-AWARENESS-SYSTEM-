@@ -1,6 +1,8 @@
-Autonomous Vehicle Sensor Fusion Platform (Real Hardware)
-Project Overview
+Autonomous Vehicle Sensor Fusion Platform 
 
+
+
+Project Overview
 This project is an educational sensor fusion platform for autonomous vehicle concepts. It combines multiple sensors to monitor the environment, prioritizes alerts, and provides visual feedback to the driver using an RGB LED.
 
 The system demonstrates real-time environmental awareness, sensor prioritization, and adjustable settings using a rotary encoder for brightness and system control.
